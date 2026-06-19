@@ -181,18 +181,19 @@ def resultado() -> rx.Component:
                             rx.table.header(rx.table.row(
                                 rx.foreach(State.datos_db[0],
                                     lambda kv: rx.table.column_header_cell(
-                                        kv[0], font_size="0.65rem", text_transform="uppercase",
-                                        color=TEXT, font_family=MONO)),
-                            )),
+                                        kv[0], font_size="0.6rem", text_transform="uppercase",
+                                        color=ACCENT, font_family=MONO, padding="0.6rem 1rem",
+                                        border_bottom=f"2px solid {BORDER}")),
+                            ), background=SURF),
                             rx.table.body(rx.foreach(State.datos_db,
                                 lambda row: rx.table.row(
                                     rx.foreach(row, lambda kv: rx.table.cell(
-                                        rx.text(kv[1], font_size="0.75rem", color=MUTED, font_family=MONO)
-                                    ))
+                                        rx.text(kv[1], font_size="0.75rem", color=TEXT, font_family=MONO),
+                                        padding="0.6rem 1rem", border_bottom=f"1px solid {BORDER}"
+                                    )),
+                                    _hover={"background": "#1a1a1a", "transition": "all 0.15s"}
                                 ))),
                             width="100%",
-                            variant="surface",
-                            size="1",
                         ),
                         overflow_x="auto", border=f"1px solid {BORDER}",
                         border_radius="12px", background=CARD,
