@@ -17,23 +17,6 @@ services:
     networks:
       - shopai_network
 
-  # 2. Administrador pgAdmin4
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: shopai_pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: dominguezf225@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: fran0803
-    ports:
-      - "9094:80" # Acceso web en http://<IP-VPS>:9094
-    volumes:
-      - ./servers.json:/pgadmin4/servers.json
-    depends_on:
-      - db
-    networks:
-      - shopai_network
-
   # 3. Backend (FastAPI API)
   backend:
     build:
