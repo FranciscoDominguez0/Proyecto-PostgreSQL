@@ -7,13 +7,13 @@ BACKEND_URL = "http://localhost:8000"
 
 BG, SURF, CARD = "#050505", "#0d0d0d", "#171717"
 BORDER         = "#222222"
-ACCENT         = "#a855f7"
+ACCENT         = "#14b8a6"
 TEXT, MUTED    = "#f5f5f5", "#737373"
 DIM            = "#262626"
 GREEN, RED     = "#10b981", "#ef4444"
 MONO           = "'JetBrains Mono', monospace"
 SANS           = "'Inter', system-ui, sans-serif"
-GRAD           = "linear-gradient(135deg, #a855f7, #d946ef)"
+GRAD           = "linear-gradient(135deg, #14b8a6, #10b981)"
 
 
 class State(rx.State):
@@ -111,7 +111,7 @@ def sidebar() -> rx.Component:
                     margin_top="1.25rem"),
             stat("clientes",  State.total_clientes,  ACCENT),
             stat("productos", State.total_productos, GREEN),
-            stat("pedidos",   State.total_pedidos,   "#c084fc"),
+            stat("pedidos",   State.total_pedidos,   "#2dd4bf"),
             spacing="0", align_items="stretch", width="100%",
         ),
 
@@ -145,15 +145,7 @@ def resultado() -> rx.Component:
                     margin_bottom="0.5rem",
                     spacing="2",
                 ),
-                rx.markdown(State.respuesta_ia, component_map={
-                    "p": lambda t: rx.text(t, font_size="0.86rem", color=TEXT,
-                                           line_height="1.7", margin_bottom="0.4rem"),
-                    "strong": lambda t: rx.text(t, font_weight="700", color=ACCENT, display="inline"),
-                    "li": lambda t: rx.text("· ", t, font_size="0.86rem", color=TEXT, line_height="1.6"),
-                    "code": lambda t: rx.code(t, font_size="0.76rem", color="#f43f5e",
-                                              font_family=MONO, background=BG,
-                                              padding="0.1rem 0.35rem", border_radius="4px"),
-                }),
+                rx.markdown(State.respuesta_ia),
                 background=CARD, border=f"1px solid {BORDER}",
                 border_radius="4px 20px 20px 20px",
                 padding="1.2rem 1.5rem", max_width="85%",
@@ -254,7 +246,7 @@ def chat_panel() -> rx.Component:
                                    color="white", line_height="1.6"),
                            background=GRAD, padding="0.8rem 1.2rem",
                            border_radius="20px 20px 4px 20px", max_width="72%",
-                           box_shadow="0 4px 16px rgba(168,85,247,.25)"),
+                           box_shadow="0 4px 16px rgba(20,184,166,.15)"),
                     display="flex", justify_content="flex-end", margin_bottom="1rem",
                 ),
                 rx.box(),
@@ -295,7 +287,7 @@ def chat_panel() -> rx.Component:
                     border=f"1px solid {BORDER}", border_radius="24px",
                     padding="0.7rem 1.2rem", height="44px", flex="1",
                     _placeholder={"color": MUTED},
-                    _focus={"border_color": ACCENT, "box_shadow": "0 0 0 2px rgba(168,85,247,.15)", "outline": "none"},
+                    _focus={"border_color": ACCENT, "box_shadow": "0 0 0 2px rgba(20,184,166,.15)", "outline": "none"},
                     transition="all 0.2s",
                 ),
                 rx.button(
