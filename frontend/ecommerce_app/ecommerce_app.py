@@ -5,15 +5,15 @@ from typing import Any
 
 BACKEND_URL = "http://localhost:8000"
 
-BG, SURF, CARD = "#0b0d14", "#111420", "#161929"
-BORDER         = "#1f2440"
-ACCENT         = "#38bdf8"
-TEXT, MUTED    = "#e1e6f0", "#4a5580"
-DIM            = "#1a1f35"
-GREEN, RED     = "#34d399", "#f87171"
+BG, SURF, CARD = "#050505", "#0d0d0d", "#171717"
+BORDER         = "#222222"
+ACCENT         = "#a855f7"
+TEXT, MUTED    = "#f5f5f5", "#737373"
+DIM            = "#262626"
+GREEN, RED     = "#10b981", "#ef4444"
 MONO           = "'JetBrains Mono', monospace"
 SANS           = "'Inter', system-ui, sans-serif"
-GRAD           = "linear-gradient(135deg, #38bdf8, #818cf8)"
+GRAD           = "linear-gradient(135deg, #a855f7, #d946ef)"
 
 
 class State(rx.State):
@@ -111,7 +111,7 @@ def sidebar() -> rx.Component:
                     margin_top="1.25rem"),
             stat("clientes",  State.total_clientes,  ACCENT),
             stat("productos", State.total_productos, GREEN),
-            stat("pedidos",   State.total_pedidos,   "#a5b4fc"),
+            stat("pedidos",   State.total_pedidos,   "#c084fc"),
             spacing="0", align_items="stretch", width="100%",
         ),
 
@@ -136,63 +136,74 @@ def resultado() -> rx.Component:
     return rx.cond(
         State.respuesta_ia != "",
         rx.vstack(
-            # Respuesta con markdown
+            # Respuesta con markdown y cabecera IA
             rx.box(
+                rx.hstack(
+                    rx.icon("sparkles", size=14, color=ACCENT),
+                    rx.text("ShopAI", font_size="0.7rem", font_family=MONO, font_weight="700", color=ACCENT),
+                    align="center",
+                    margin_bottom="0.5rem",
+                    spacing="2",
+                ),
                 rx.markdown(State.respuesta_ia, component_map={
                     "p": lambda t: rx.text(t, font_size="0.86rem", color=TEXT,
-                                           line_height="1.75", margin_bottom="0.4rem"),
+                                           line_height="1.7", margin_bottom="0.4rem"),
                     "strong": lambda t: rx.text(t, font_weight="700", color=ACCENT, display="inline"),
                     "li": lambda t: rx.text("· ", t, font_size="0.86rem", color=TEXT, line_height="1.6"),
-                    "code": lambda t: rx.code(t, font_size="0.76rem", color="#94a3b8",
+                    "code": lambda t: rx.code(t, font_size="0.76rem", color="#f43f5e",
                                               font_family=MONO, background=BG,
                                               padding="0.1rem 0.35rem", border_radius="4px"),
                 }),
                 background=CARD, border=f"1px solid {BORDER}",
-                border_radius="4px 16px 16px 16px",
-                padding="0.95rem 1.2rem", max_width="85%",
+                border_radius="4px 20px 20px 20px",
+                padding="1.2rem 1.5rem", max_width="85%",
+                box_shadow="0 4px 20px rgba(0,0,0,0.2)",
             ),
 
-            # SQL block
+            # SQL block con code_block profesional
             rx.cond(
                 State.sql_ejecutado != "",
                 rx.box(
-                    rx.text("sql", font_size="0.58rem", color=MUTED,
+                    rx.text("sql ejecutado", font_size="0.58rem", color=MUTED,
                             font_family=MONO, letter_spacing="0.12em", margin_bottom="0.4rem"),
-                    rx.text(State.sql_ejecutado, font_size="0.74rem", color="#64748b",
-                            font_family=MONO, white_space="pre-wrap", line_height="1.55"),
-                    background="#08090f", border=f"1px solid {BORDER}",
-                    border_radius="8px", padding="0.75rem 1rem", width="100%",
+                    rx.code_block(
+                        State.sql_ejecutado,
+                        language="sql",
+                        font_size="0.75rem",
+                        border_radius="12px",
+                        border=f"1px solid {BORDER}",
+                    ),
+                    width="100%",
                 ),
                 rx.box(),
             ),
 
-            # Tabla
+            # Tabla Radix optimizada y moderna
             rx.cond(
                 State.datos_db.length() > 0,
                 rx.box(
-                    rx.text("datos", font_size="0.58rem", color=MUTED,
+                    rx.text("datos devueltos", font_size="0.58rem", color=MUTED,
                             font_family=MONO, letter_spacing="0.12em", margin_bottom="0.4rem"),
                     rx.box(
                         rx.table.root(
                             rx.table.header(rx.table.row(
                                 rx.foreach(State.datos_db[0],
                                     lambda kv: rx.table.column_header_cell(
-                                        kv[0], font_size="0.6rem", text_transform="uppercase",
-                                        color=ACCENT, padding="0.4rem 0.85rem",
-                                        background=DIM, font_family=MONO, white_space="nowrap")),
+                                        kv[0], font_size="0.65rem", text_transform="uppercase",
+                                        color=TEXT, font_family=MONO)),
                             )),
                             rx.table.body(rx.foreach(State.datos_db,
                                 lambda row: rx.table.row(
                                     rx.foreach(row, lambda kv: rx.table.cell(
-                                        rx.text(kv[1], font_size="0.77rem", color=MUTED, font_family=MONO),
-                                        padding="0.38rem 0.85rem",
-                                        border_bottom=f"1px solid {BORDER}",
-                                        white_space="nowrap")),
-                                    _hover={"background": DIM}))),
+                                        rx.text(kv[1], font_size="0.75rem", color=MUTED, font_family=MONO)
+                                    ))
+                                ))),
                             width="100%",
+                            variant="surface",
+                            size="1",
                         ),
                         overflow_x="auto", border=f"1px solid {BORDER}",
-                        border_radius="8px", background=CARD,
+                        border_radius="12px", background=CARD,
                     ),
                     width="100%",
                 ),
@@ -216,8 +227,8 @@ def chat_panel() -> rx.Component:
             rx.spacer(),
             rx.button("limpiar", on_click=State.limpiar,
                       background="transparent", color=MUTED, border=f"1px solid {BORDER}",
-                      border_radius="8px", font_size="0.7rem", font_family=MONO,
-                      padding="0.28rem 0.7rem", cursor="pointer",
+                      border_radius="20px", font_size="0.7rem", font_family=MONO,
+                      padding="0.28rem 0.8rem", cursor="pointer",
                       _hover={"color": TEXT, "border_color": ACCENT}, transition="all 0.15s"),
             align="center", width="100%",
             padding="0.85rem 1.4rem", border_bottom=f"1px solid {BORDER}", background=SURF,
@@ -241,9 +252,9 @@ def chat_panel() -> rx.Component:
                 rx.box(
                     rx.box(rx.text(State.pregunta_mostrada, font_size="0.86rem",
                                    color="white", line_height="1.6"),
-                           background=GRAD, padding="0.7rem 1rem",
-                           border_radius="16px 16px 4px 16px", max_width="72%",
-                           box_shadow="0 2px 16px rgba(56,189,248,.15)"),
+                           background=GRAD, padding="0.8rem 1.2rem",
+                           border_radius="20px 20px 4px 20px", max_width="72%",
+                           box_shadow="0 4px 16px rgba(168,85,247,.25)"),
                     display="flex", justify_content="flex-end", margin_bottom="1rem",
                 ),
                 rx.box(),
@@ -266,8 +277,9 @@ def chat_panel() -> rx.Component:
 
             resultado(),
 
-            padding="1.2rem 1.4rem", flex="1",
+            padding="1.5rem 1.8rem", flex="1",
             overflow_y="auto", position="relative",
+            css={"&::-webkit-scrollbar": {"width": "6px"}, "&::-webkit-scrollbar-thumb": {"background-color": BORDER, "border-radius": "10px"}},
         ),
 
         # Input
@@ -280,10 +292,10 @@ def chat_panel() -> rx.Component:
                     on_key_down=State.handle_enter,
                     font_size="0.85rem", font_family=SANS,
                     background=CARD, color=TEXT,
-                    border=f"1px solid {BORDER}", border_radius="10px",
-                    padding="0.7rem 1rem", height="44px", flex="1",
+                    border=f"1px solid {BORDER}", border_radius="24px",
+                    padding="0.7rem 1.2rem", height="44px", flex="1",
                     _placeholder={"color": MUTED},
-                    _focus={"border_color": ACCENT, "box_shadow": "0 0 0 2px rgba(56,189,248,.15)", "outline": "none"},
+                    _focus={"border_color": ACCENT, "box_shadow": "0 0 0 2px rgba(168,85,247,.15)", "outline": "none"},
                     transition="all 0.2s",
                 ),
                 rx.button(
@@ -291,15 +303,15 @@ def chat_panel() -> rx.Component:
                     on_click=State.enviar, disabled=State.cargando,
                     background=GRAD, color=BG, font_family=MONO,
                     font_size="0.78rem", font_weight="700",
-                    border="none", border_radius="10px",
-                    padding="0 1.1rem", height="44px", cursor="pointer",
+                    border="none", border_radius="24px",
+                    padding="0 1.5rem", height="44px", cursor="pointer",
                     _hover={"opacity": "0.85"},
                     _disabled={"opacity": "0.4", "cursor": "not-allowed"},
                     transition="all 0.15s",
                 ),
                 spacing="2",
             ),
-            padding="0.9rem 1.4rem", border_top=f"1px solid {BORDER}", background=SURF,
+            padding="1rem 1.4rem 1.4rem 1.4rem", border_top=f"1px solid {BORDER}", background=SURF,
         ),
 
         flex="1", display="flex", flex_direction="column",
@@ -312,6 +324,7 @@ def index() -> rx.Component:
         sidebar(), chat_panel(),
         display="flex", width="100vw", height="100vh",
         font_family=SANS, background=BG, color=TEXT,
+        overflow="hidden",
         on_mount=State.cargar_stats,
     )
 
@@ -321,6 +334,15 @@ app = rx.App(
         "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
         "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
     ],
-    style={"margin": "0", "padding": "0"},
+    style={
+        "margin": "0",
+        "padding": "0",
+        "box_sizing": "border-box",
+        "body": {
+            "margin": "0",
+            "padding": "0",
+            "overflow": "hidden"
+        }
+    },
 )
 app.add_page(index, route="/", title="ShopAI")
