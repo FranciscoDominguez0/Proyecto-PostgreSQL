@@ -1,13 +1,5 @@
--- =============================================
--- SISTEMA DE COMERCIO ELECTRÓNICO
--- Base de datos con 3 tablas relacionadas
--- =============================================
 
-CREATE DATABASE IF NOT EXISTS ecommerce_db;
 
-\c ecommerce_db;
-
--- Tabla de Clientes
 CREATE TABLE IF NOT EXISTS clientes (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -18,7 +10,7 @@ CREATE TABLE IF NOT EXISTS clientes (
     activo BOOLEAN DEFAULT TRUE
 );
 
--- Tabla de Productos
+-- TABLA PRODUCTOS
 CREATE TABLE IF NOT EXISTS productos (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
@@ -29,17 +21,35 @@ CREATE TABLE IF NOT EXISTS productos (
     activo BOOLEAN DEFAULT TRUE
 );
 
--- Tabla de Pedidos
+-- TABLA PEDIDOS
 CREATE TABLE IF NOT EXISTS pedidos (
     id SERIAL PRIMARY KEY,
-    cliente_id INTEGER REFERENCES clientes(id) ON DELETE CASCADE,
-    producto_id INTEGER REFERENCES productos(id) ON DELETE CASCADE,
+    cliente_id INTEGER NOT NULL,
+    producto_id INTEGER NOT NULL,
     cantidad INTEGER NOT NULL DEFAULT 1,
     precio_unitario NUMERIC(10,2) NOT NULL,
     total NUMERIC(10,2) GENERATED ALWAYS AS (cantidad * precio_unitario) STORED,
-    estado VARCHAR(30) DEFAULT 'pendiente' CHECK (estado IN ('pendiente','procesando','enviado','entregado','cancelado')),
-    fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    estado VARCHAR(30) DEFAULT 'pendiente'
+        CHECK (estado IN ('pendiente','procesando','enviado','entregado','cancelado')),
+    fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_cliente
+        FOREIGN KEY (cliente_id)
+        REFERENCES clientes(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_producto
+        FOREIGN KEY (producto_id)
+        REFERENCES productos(id)
+        ON DELETE CASCADE
 );
+
+-- ÍNDICES PARA MEJOR RENDIMIENTO
+CREATE INDEX idx_clientes_email ON clientes(email);
+CREATE INDEX idx_productos_categoria ON productos(categoria);
+CREATE INDEX idx_pedidos_cliente ON pedidos(cliente_id);
+CREATE INDEX idx_pedidos_producto ON pedidos(producto_id);
+CREATE INDEX idx_pedidos_fecha ON pedidos(fecha_pedido);
 
 -- =============================================
 -- INSERTAR DATOS DE PRUEBA

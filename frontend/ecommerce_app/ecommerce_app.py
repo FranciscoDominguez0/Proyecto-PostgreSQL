@@ -3,7 +3,8 @@ import reflex as rx
 import httpx
 from typing import Any
 
-BACKEND_URL = "http://localhost:8000"
+import os
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 BG, SURF, CARD = "#050505", "#0d0d0d", "#171717"
 BORDER         = "#222222"

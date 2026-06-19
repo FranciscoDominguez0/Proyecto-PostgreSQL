@@ -1,0 +1,33 @@
+FROM python:3.11-slim
+
+# Evitar archivos .pyc y forzar logs inmediatos
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Instalar dependencias del sistema y Node.js (requerido para Reflex Next.js)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    build-essential \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Instalar librerías de Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código del frontend (que contiene rxconfig.py y la app)
+COPY frontend/ /app/
+
+# Inicializar Reflex (instala paquetes de npm internamente)
+RUN reflex init
+
+# Exponer los puertos definidos en rxconfig.py
+EXPOSE 9092
+EXPOSE 9091
+
+# Levantar Reflex en modo desarrollo (evita el chequeo de puertos idénticos en producción)
+CMD ["reflex", "run", "--backend-host", "0.0.0.0"]

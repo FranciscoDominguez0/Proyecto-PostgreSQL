@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+.pytest_cache/
+
+# Git
+.git/
+.gitignore
+
+# Reflex / Node
+.web/
+.states/
+node_modules/
+reflex.lock
+.reflex/
+
+# Docker
+docker-compose.override.yml
+docker-compose.yml
+Dockerfile.*
+.dockerignore
