@@ -1,5 +1,8 @@
+-- =============================================
+-- SISTEMA DE COMERCIO ELECTRÓNICO - POSTGRESQL
+-- =============================================
 
-
+-- TABLA CLIENTES
 CREATE TABLE IF NOT EXISTS clientes (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -78,6 +81,48 @@ INSERT INTO clientes (nombre, email, ciudad, pais) VALUES
 ('Paula Cruz',       'paula.cruz@email.com',    'Chitré',           'Panama'),
 ('Roberto Vega',     'rob.vega@email.com',      'Ciudad de Panamá', 'Panama');
 
+INSERT INTO clientes (nombre,email,ciudad,pais) VALUES
+('José Castillo','jose.castillo@email.com','Panamá','Panama'),
+('Gabriela Pérez','gabriela.perez@email.com','David','Panama'),
+('Fernando Díaz','fernando.diaz@email.com','Colón','Panama'),
+('Patricia Mendoza','patricia.mendoza@email.com','Santiago','Panama'),
+('Ricardo Sánchez','ricardo.sanchez@email.com','Chitré','Panama'),
+('Laura Navarro','laura.navarro@email.com','Penonomé','Panama'),
+('Kevin Moreno','kevin.moreno@email.com','Arraiján','Panama'),
+('Natalia Gómez','natalia.gomez@email.com','La Chorrera','Panama'),
+('Miguel Castro','miguel.castro@email.com','David','Panama'),
+('Andrea Ruiz','andrea.ruiz@email.com','Panamá','Panama'),
+('Javier Herrera','javier.herrera@email.com','Colón','Panama'),
+('Diana Torres','diana.torres@email.com','Santiago','Panama'),
+('Eduardo Silva','eduardo.silva@email.com','Boquete','Panama'),
+('Valeria Jiménez','valeria.jimenez@email.com','David','Panama'),
+('Tomás Ortega','tomas.ortega@email.com','Chitré','Panama'),
+('Mónica Flores','monica.flores@email.com','Panamá','Panama'),
+('Raúl Gómez','raul.gomez@email.com','Arraiján','Panama'),
+('Karla Vega','karla.vega@email.com','La Chorrera','Panama'),
+('Cristian Ríos','cristian.rios@email.com','Colón','Panama'),
+('Melissa Cruz','melissa.cruz@email.com','David','Panama'),
+('Óscar Mendoza','oscar.mendoza@email.com','Panamá','Panama'),
+('Yadira Morales','yadira.morales@email.com','Santiago','Panama'),
+('Jorge Fuentes','jorge.fuentes@email.com','Penonomé','Panama'),
+('Tatiana López','tatiana.lopez@email.com','Boquete','Panama'),
+('Erick Villarreal','erick.v@email.com','David','Panama'),
+('Paola Sánchez','paola.s@email.com','Panamá','Panama'),
+('Héctor Castillo','hector.c@email.com','Colón','Panama'),
+('Sara Martínez','sara.m@email.com','Arraiján','Panama'),
+('Bruno Pérez','bruno.p@email.com','David','Panama'),
+('Verónica Díaz','veronica.d@email.com','Chitré','Panama'),
+('Luis Alberto Mora','luisa.m@email.com','Santiago','Panama'),
+('Ana Sofía Torres','anasofia.t@email.com','Panamá','Panama'),
+('Felipe González','felipe.g@email.com','La Chorrera','Panama'),
+('Carolina Herrera','carolina.h@email.com','David','Panama'),
+('Mario Rodríguez','mario.r@email.com','Colón','Panama'),
+('Daniel Castro','daniel.c@email.com','Boquete','Panama'),
+('Juliana Ramos','juliana.r@email.com','Panamá','Panama'),
+('Alberto Núñez','alberto.n@email.com','Santiago','Panama'),
+('Karen Vega','karen.v@email.com','Arraiján','Panama'),
+('Iván Morales','ivan.m@email.com','David','Panama');
+
 -- 15 Productos
 INSERT INTO productos (nombre, categoria, precio, stock, descripcion) VALUES
 ('Laptop Gamer Pro 15"',        'Electrónica',  1299.99, 15, 'Laptop de alto rendimiento con RTX 4060'),
@@ -95,6 +140,14 @@ INSERT INTO productos (nombre, categoria, precio, stock, descripcion) VALUES
 ('Impresora HP LaserJet',       'Impresión',     299.00,  8, 'Láser monocromo, WiFi, dúplex'),
 ('Router WiFi 6 AX3000',        'Redes',         119.99, 16, 'Tri-band, cobertura 250m²'),
 ('Power Bank 26800mAh',         'Accesorios',     45.99, 60, 'Carga rápida 65W, 3 puertos');
+INSERT INTO productos
+(nombre,categoria,precio,stock,descripcion)
+VALUES
+('Disco Duro 2TB','Almacenamiento',89.99,40,'HDD SATA 7200 RPM'),
+('Micrófono USB Profesional','Accesorios',129.99,25,'Ideal para streaming'),
+('Parlante Bluetooth','Audio',79.99,35,'Resistente al agua'),
+('Cámara de Seguridad WiFi','Seguridad',99.99,30,'Visión nocturna'),
+('Laptop Empresarial 14"','Electrónica',999.99,12,'Intel Core i7, 16GB RAM');
 
 -- 35 Pedidos distribuidos
 INSERT INTO pedidos (cliente_id, producto_id, cantidad, precio_unitario, estado, fecha_pedido) VALUES
@@ -133,3 +186,50 @@ INSERT INTO pedidos (cliente_id, producto_id, cantidad, precio_unitario, estado,
 (6,  3,  1,  349.99, 'procesando', '2025-05-12 13:45:00'),
 (8,  5,  2,   59.99, 'entregado',  '2025-05-15 10:00:00'),
 (10, 6,  1,  499.00, 'entregado',  '2025-05-18 15:30:00');
+INSERT INTO pedidos
+(cliente_id,producto_id,cantidad,precio_unitario,estado,fecha_pedido)
+VALUES
+(21,16,1,89.99,'entregado','2025-05-20 10:00:00'),
+(21,18,2,79.99,'entregado','2025-05-25 14:00:00'),
+
+(22,17,1,129.99,'procesando','2025-05-21 09:30:00'),
+(22,20,1,999.99,'entregado','2025-05-30 11:00:00'),
+
+(23,19,1,99.99,'enviado','2025-05-22 15:45:00'),
+(23,3,1,349.99,'entregado','2025-05-29 16:10:00'),
+
+(24,1,1,1299.99,'entregado','2025-05-23 12:00:00'),
+(24,8,1,149.99,'entregado','2025-05-24 13:00:00'),
+
+(25,5,2,59.99,'entregado','2025-05-24 10:00:00'),
+(25,10,1,49.99,'entregado','2025-06-01 09:00:00'),
+
+(26,2,1,799.00,'enviado','2025-05-25 15:00:00'),
+(26,12,1,399.00,'entregado','2025-06-02 11:00:00'),
+
+(27,4,2,129.99,'entregado','2025-05-26 08:00:00'),
+(27,9,1,99.00,'entregado','2025-06-03 10:00:00'),
+
+(28,6,1,499.00,'procesando','2025-05-27 14:00:00'),
+(28,14,1,119.99,'entregado','2025-06-04 12:00:00'),
+
+(29,11,1,749.00,'entregado','2025-05-28 16:00:00'),
+(29,15,3,45.99,'entregado','2025-06-05 13:00:00'),
+
+(30,13,1,299.00,'entregado','2025-05-29 11:30:00'),
+(30,17,1,129.99,'entregado','2025-06-06 15:00:00'),
+
+(31,20,1,999.99,'entregado','2025-06-01 10:00:00'),
+(31,5,1,59.99,'entregado','2025-06-07 14:00:00'),
+
+(32,18,2,79.99,'entregado','2025-06-02 09:00:00'),
+(32,4,1,129.99,'entregado','2025-06-08 12:00:00'),
+
+(33,19,1,99.99,'entregado','2025-06-03 16:00:00'),
+(33,2,1,799.00,'entregado','2025-06-09 11:00:00'),
+
+(34,1,1,1299.99,'enviado','2025-06-04 13:00:00'),
+(34,7,1,389.00,'entregado','2025-06-10 10:00:00'),
+
+(35,16,2,89.99,'entregado','2025-06-05 15:00:00'),
+(35,12,1,399.00,'entregado','2025-06-11 09:00:00');
