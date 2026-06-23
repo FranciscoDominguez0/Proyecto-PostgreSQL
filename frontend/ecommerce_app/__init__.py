@@ -1,1 +1,0 @@
-# Paquete del frontend ShopAI

@@ -1,4 +1,4 @@
-# database.py — Conexión y consultas a PostgreSQL
+# database.py — Conexión y consultas a PostgreSQL (Sistema Veterinario)
 
 import os
 import psycopg2
@@ -12,7 +12,7 @@ def get_db_connection():
         conn = psycopg2.connect(
             host=os.getenv("DB_HOST", "localhost"),
             port=os.getenv("DB_PORT", "5432"),
-            dbname=os.getenv("DB_NAME", "ecommerce_db"),
+            dbname=os.getenv("DB_NAME", "veterinaria_db"),
             user=os.getenv("DB_USER", "postgres"),
             password=os.getenv("DB_PASSWORD", ""),
         )

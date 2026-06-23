@@ -1,4 +1,4 @@
-# ai.py — Integración con DeepSeek AI
+# ai.py — Integración con DeepSeek AI (Sistema Veterinario)
 
 import os
 import json
@@ -8,35 +8,48 @@ from fastapi import HTTPException
 
 # Schema de la base de datos para el prompt de generación SQL
 SCHEMA_INFO = """
-Base de datos: ecommerce_db (Sistema de Comercio Electronico)
+Base de datos: veterinaria_db (Sistema Veterinario)
 
-TABLA: clientes
+TABLA: propietarios
   - id (SERIAL PK)
   - nombre (VARCHAR)
   - email (VARCHAR, unico)
+  - telefono (VARCHAR)
   - ciudad (VARCHAR)
-  - pais (VARCHAR)
+  - direccion (VARCHAR)
   - fecha_registro (DATE)
   - activo (BOOLEAN)
 
-TABLA: productos
+TABLA: mascotas
   - id (SERIAL PK)
   - nombre (VARCHAR)
-  - categoria (VARCHAR): 'Electronica','Accesorios','Mobiliario','Almacenamiento','Wearables','Impresion','Redes'
-  - precio (NUMERIC)
-  - stock (INTEGER)
-  - descripcion (TEXT)
+  - especie (VARCHAR): 'Perro','Gato','Ave','Conejo','Reptil','Otro'
+  - raza (VARCHAR)
+  - fecha_nacimiento (DATE)
+  - sexo (CHAR): 'M' (macho) o 'H' (hembra)
+  - propietario_id (FK -> propietarios.id)
   - activo (BOOLEAN)
 
-TABLA: pedidos
+TABLA: vacunas
   - id (SERIAL PK)
-  - cliente_id (FK -> clientes.id)
-  - producto_id (FK -> productos.id)
-  - cantidad (INTEGER)
-  - precio_unitario (NUMERIC)
-  - total (NUMERIC, columna generada = cantidad * precio_unitario)
-  - estado (VARCHAR): 'pendiente','procesando','enviado','entregado','cancelado'
-  - fecha_pedido (TIMESTAMP)
+  - mascota_id (FK -> mascotas.id)
+  - nombre_vacuna (VARCHAR)
+  - fecha_aplicacion (DATE)
+  - fecha_proxima (DATE)
+  - veterinario (VARCHAR)
+  - lote (VARCHAR)
+  - observaciones (TEXT)
+
+TABLA: consultas
+  - id (SERIAL PK)
+  - mascota_id (FK -> mascotas.id)
+  - fecha_consulta (TIMESTAMP)
+  - motivo (VARCHAR)
+  - diagnostico (TEXT)
+  - tratamiento (TEXT)
+  - costo (NUMERIC)
+  - veterinario (VARCHAR)
+  - estado (VARCHAR): 'pendiente','en_curso','completada','cancelada'
 """
 
 
@@ -58,7 +71,7 @@ def generar_sql(pregunta: str) -> str:
     """Convierte una pregunta en lenguaje natural a SQL usando DeepSeek."""
     client = get_deepseek_client()
 
-    prompt = f"""Eres un experto en SQL para PostgreSQL. Dado el siguiente schema:
+    prompt = f"""Eres un experto en SQL para PostgreSQL. Dado el siguiente schema de un sistema veterinario:
 
 {SCHEMA_INFO}
 
@@ -67,10 +80,10 @@ Genera UNA SOLA consulta SQL valida para PostgreSQL que responda:
 
 REGLAS:
 - Responde UNICAMENTE con el SQL, sin explicaciones ni bloques de codigo.
-- Usa JOINs cuando sea necesario.
+- Usa JOINs cuando sea necesario (mascotas JOIN propietarios, etc.).
 - Limita listas a LIMIT 20.
 - No uses columnas fuera del schema.
-- La columna 'total' en pedidos es generada, no la calcules manualmente.
+- Para edad de mascotas usa: DATE_PART('year', AGE(fecha_nacimiento))
 """
 
     response = client.chat.completions.create(
@@ -91,16 +104,18 @@ def generar_respuesta_natural(pregunta: str, datos: list, sql: str) -> str:
 
     datos_str = json.dumps(datos, ensure_ascii=False, default=str, indent=2)
 
-    prompt = f"""Eres un asistente analitico de un sistema de comercio electronico.
-Pregunta del usuario: "{pregunta}"
-SQL ejecutado: {sql}
-Datos obtenidos:
+    prompt = f"""Eres el sistema analitico VetAI. Tu objetivo es resumir los datos obtenidos para el usuario de forma directa y profesional.
+
+Pregunta original: "{pregunta}"
+Datos obtenidos de la base de datos:
 {datos_str}
 
-Responde de forma clara y concisa en espanol.
-- Interpreta los datos numericos.
-- Si la lista esta vacia, indicalo.
-- Maximo 150 palabras.
+REGLAS DE RESPUESTA:
+1. Ve DIRECTAMENTE a la respuesta. Cero saludos o despedidas.
+2. NUNCA ofrezcas hacer consultas adicionales ni digas "Si necesitas mas informacion...".
+3. NO agregues recomendaciones ni sugerencias fuera de lo estrictamente preguntado.
+4. Si los datos son una lista, simplemente da un resumen de 1-2 lineas (ej: "Se encontraron X mascotas que cumplen el criterio") ya que el usuario vera la tabla de datos completa en su pantalla.
+5. Usa un tono analitico, serio y conciso (maximo 2-3 lineas de texto).
 """
 
     response = client.chat.completions.create(

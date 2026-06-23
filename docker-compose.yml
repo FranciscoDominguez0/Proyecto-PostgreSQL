@@ -1,67 +1,65 @@
 version: '3.8'
 
 services:
-  # 1. Base de datos PostgreSQL
+  # 1. Base de datos PostgreSQL - Sistema Veterinario
   db:
     image: postgres:15-alpine
-    container_name: shopai_db
+    container_name: vetai_db
     restart: always
     environment:
-      POSTGRES_DB: ecommerce_db
+      POSTGRES_DB: veterinaria_db
       POSTGRES_USER: fran2003
       POSTGRES_PASSWORD: 4e369CBEAD
     ports:
-      - "9093:5432" # Expuesto fuera de los puertos ocupados
+      - "9093:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - shopai_network
+      - vetai_network
 
-  # 3. Backend (FastAPI API)
+  # 2. Backend (FastAPI API) - VetAI
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    container_name: shopai_backend
+    container_name: vetai_backend
     restart: always
     environment:
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_NAME=ecommerce_db
+      - DB_NAME=veterinaria_db
       - DB_USER=fran2003
       - DB_PASSWORD=4e369CBEAD
-      - DEEPSEEK_API_KEY= # Reemplazar con tu API Key real
+      - DEEPSEEK_API_KEY=
       - DEEPSEEK_BASE_URL=https://api.deepseek.com
     ports:
-      - "9090:8000" # Servidor API expuesto en el puerto 9090 (lejos del 8000)
+      - "9090:8000"
     depends_on:
       - db
     networks:
-      - shopai_network
+      - vetai_network
 
-  # 4. Frontend (Reflex App)
+  # 3. Frontend (Reflex App) - VetAI
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    container_name: shopai_frontend
+    container_name: vetai_frontend
     restart: always
     environment:
-      - BACKEND_URL=http://backend:8000 # Conexión interna dentro de docker
-      # IMPORTANTE: Reemplaza "localhost" con la IP pública de tu VPS para producción
-      # (los clientes del navegador necesitan conectarse a esta IP para la comunicación en tiempo real)
-      - API_URL=http://localhost:9091 
+      - BACKEND_URL=http://backend:8000
+      - API_URL=http://localhost:9091
     ports:
-      - "9092:9092" # Acceso web del frontend
-      - "9091:9091" # Puerto del backend Reflex
+      - "9092:9092"
+      - "9091:9091"
     depends_on:
       - backend
     networks:
-      - shopai_network
+      - vetai_network
 
 volumes:
   postgres_data:
 
 networks:
-  shopai_network:
+  vetai_network:
     driver: bridge
