@@ -25,9 +25,8 @@ COPY frontend/ /app/
 # Inicializar Reflex (instala paquetes de npm internamente)
 RUN reflex init
 
-# Exponer los puertos definidos en rxconfig.py
-EXPOSE 9092
-EXPOSE 9091
+# Exponer el puerto por defecto de producción de Reflex
+EXPOSE 3000
 
-# Levantar Reflex en modo desarrollo (evita el chequeo de puertos idénticos en producción)
-CMD ["reflex", "run", "--backend-host", "0.0.0.0"]
+# Levantar Reflex en modo producción
+CMD ["reflex", "run", "--env", "prod", "--backend-host", "0.0.0.0"]
