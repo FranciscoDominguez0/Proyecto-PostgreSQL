@@ -1,4 +1,4 @@
-version: '3.8'
+name: veterinaria
 
 services:
   # 1. Base de datos PostgreSQL - Sistema Veterinario
@@ -6,12 +6,7 @@ services:
     image: postgres:15-alpine
     container_name: vetai_db
     restart: always
-    environment:
-      POSTGRES_DB: veterinaria_db
-      POSTGRES_USER: fran2003
-      POSTGRES_PASSWORD: 4e369CBEAD
-    ports:
-      - "9093:5432"
+    env_file: backend/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -24,14 +19,7 @@ services:
       dockerfile: Dockerfile.backend
     container_name: vetai_backend
     restart: always
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=veterinaria_db
-      - DB_USER=fran2003
-      - DB_PASSWORD=4e369CBEAD
-      - DEEPSEEK_API_KEY=
-      - DEEPSEEK_BASE_URL=https://api.deepseek.com
+    env_file: backend/.env
     ports:
       - "9090:8000"
     depends_on:
@@ -46,9 +34,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: vetai_frontend
     restart: always
-    environment:
-      - BACKEND_URL=http://backend:8000
-      - API_URL=http://localhost:9091
+    env_file: backend/.env
     ports:
       - "9092:9092"
       - "9091:9091"

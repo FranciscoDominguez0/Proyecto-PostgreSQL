@@ -81,7 +81,7 @@ docker exec -i vetai_db psql -U fran2003 -d veterinaria_db < database/veterinari
 ## 📁 Estructura del Proyecto
 
 ```
-ShopAI/
+Veterinaria/
 ├── backend/
 │   ├── main.py          # API FastAPI (endpoints /consulta, /stats, /health)
 │   ├── ai.py            # Integración DeepSeek (SQL + respuesta natural)
