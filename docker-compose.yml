@@ -4,22 +4,27 @@ services:
     image: postgres:15-alpine
     container_name: vetai_db
     restart: always
-    env_file: backend/.env
-    ports:
-      - "127.0.0.1:5432:5432" 
-   
+    env_file:
+      - backend/.env
+    expose:
+      - "5432"
+    networks:
+      - vetai-network
+
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
     container_name: vetai_backend
     restart: always
-    env_file: backend/.env
+    env_file:
+      - backend/.env
     expose:
       - "8000"
     depends_on:
       - db
-
+    networks:
+      - vetai-network
 
   frontend:
     build:
@@ -27,13 +32,19 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: vetai_frontend
     restart: always
-    env_file: backend/.env
+    env_file:
+      - backend/.env
     expose:
       - "3000"
     depends_on:
       - backend
+    networks:
+      - vetai-network
+      - red-proxy
 
 networks:
-  default:
+  vetai-network:
+    driver: bridge
+
+  red-proxy:
     external: true
-    name: red-proxy
