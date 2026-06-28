@@ -20,14 +20,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el código del frontend (que contiene rxconfig.py y la app)
-# pero sin la carpeta assets para que reflex init no la sobreescriba
 COPY frontend/ /app/
 
 # Inicializar Reflex (instala paquetes de npm internamente)
 RUN reflex init
-
-# Volver a copiar los assets DESPUÉS del init para preservar el favicon personalizado
-COPY frontend/assets/ /app/assets/
 
 # Exponer el puerto por defecto de producción de Reflex
 EXPOSE 3000

@@ -280,4 +280,15 @@ app = rx.App(
     ],
     style={"margin":"0","padding":"0","box_sizing":"border-box","body":{"margin":"0","padding":"0","overflow":"hidden"}},
 )
-app.add_page(index, route="/", title="VetAI", image="/favicon.ico")
+app.add_page(
+    index,
+    route="/",
+    title="VetAI",
+    meta=[
+        {"name": "description", "content": "Sistema veterinario con IA"},
+    ],
+    head_components=[
+        rx.el.link(rel="icon", type="image/x-icon", href="/favicon.ico"),
+        rx.el.link(rel="shortcut icon", href="/favicon.ico"),
+    ],
+)
