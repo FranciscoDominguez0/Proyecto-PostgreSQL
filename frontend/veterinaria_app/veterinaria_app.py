@@ -280,4 +280,4 @@ app = rx.App(
     ],
     style={"margin":"0","padding":"0","box_sizing":"border-box","body":{"margin":"0","padding":"0","overflow":"hidden"}},
 )
-app.add_page(index,route="/",title="VetAI")
+app.add_page(index, route="/", title="VetAI", image="/favicon.ico")
