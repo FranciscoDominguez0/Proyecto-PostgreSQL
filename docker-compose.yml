@@ -8,6 +8,8 @@ services:
       - backend/.env
     expose:
       - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - vetai-network
 
@@ -36,11 +38,12 @@ services:
       - backend/.env
     expose:
       - "3000"
-    depends_on:
-      - backend
     networks:
       - vetai-network
       - red-proxy
+
+volumes:
+  postgres_data:
 
 networks:
   vetai-network:
