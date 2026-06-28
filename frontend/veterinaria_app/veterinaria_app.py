@@ -1,51 +1,48 @@
 import reflex as rx
 import httpx
-from typing import Any, TypedDict
+from typing import TypedDict
 import os
 
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8001")
 
-# ── Paleta oscura profesional (Ocean / Slate) ─────────────────────────
-BG    = "#0b0f14"
-SURF  = "#111827"
-CARD  = "#1f2937"
-BORDER= "#374151"
-ACCENT= "#06b6d4"        # cyan
-ACCENT2="#0ea5e9"        # ocean blue
-TEXT  = "#f9fafb"
-MUTED = "#9ca3af"
-DIM   = "#374151"
-GREEN = "#10b981"
-RED   = "#ef4444"
-AMBER = "#f59e0b"
-BLUE  = "#3b82f6"
-PINK  = "#d946ef"
-MONO  = "'JetBrains Mono', monospace"
-SANS  = "'Inter', system-ui, sans-serif"
-GRAD  = "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)"
-GRAD_USER = "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
+# Paleta
+BG="#121417"; SURF="#171A1E"; CARD="#20242A"; CARD2="#1A1D21"; BORDER="#2C3138"
+TEXT="#F2F3F5"; SUB="#A7ADB7"; DIM="#6F7682"; ACCENT="#8EBB67"; ACLT="#6F9E4A"
+BTN="#5E7F45"; ERR="#D96C6C"; WARN="#D8A43A"; USER_BG="#2E3D30"
+MONO="'JetBrains Mono',monospace"; SANS="'Inter',system-ui,sans-serif"
+GRAD="linear-gradient(135deg,#121417 0%,#161A1F 45%,#101214 100%)"
+
+# Estilos reutilizables
+_card  = {"background": CARD,  "border": f"1px solid {BORDER}", "border_radius": "10px"}
+_row   = {"position": "relative", "width": "100%", "height": "34px"}
+_abs_l = lambda l: {"position":"absolute","left":l,"top":"50%","transform":"translateY(-50%)"}
+_abs_r = {"position":"absolute","right":"0.75rem","top":"50%","transform":"translateY(-50%)"}
+
+MODULOS = [
+    ("paw-print","Cuantas mascotas hay"), ("user","Lista de propietarios"),
+    ("link-2","Mascotas y sus duenos"),   ("syringe","Vacunas aplicadas"),
+    ("clipboard-list","Consultas completadas"), ("bar-chart-2","Mascotas por especie"),
+]
+STATS = [
+    ("user","Propietarios",lambda: State.total_propietarios,"#22d3ee"),
+    ("paw-print","Mascotas",lambda: State.total_mascotas, ACCENT),
+    ("syringe","Vacunas",lambda: State.total_vacunas, WARN),
+    ("clipboard-list","Consultas",lambda: State.total_consultas,"#60a5fa"),
+    ("dollar-sign","Ingresos",lambda: "$"+State.ingresos_total.to_string(),"#c084fc"),
+]
 
 
 class Mensaje(TypedDict):
-    pregunta: str
-    respuesta_ia: str
-    sql_ejecutado: str
-    datos_db: list[dict[str, str]]
-    error: str
+    pregunta:str; respuesta_ia:str; sql_ejecutado:str
+    datos_db:list[dict[str,str]]; error:str
 
 
 class State(rx.State):
-    pregunta: str = ""
-    pregunta_mostrada: str = ""
-    cargando: bool = False
-    historial: list[Mensaje] = []
-    total_propietarios: int = 0
-    total_mascotas: int = 0
-    total_vacunas: int = 0
-    total_consultas: int = 0
-    ingresos_total: float = 0.0
-    stats_ok: bool = False
-    activa: str = ""
+    pregunta:str=""; pregunta_mostrada:str=""; cargando:bool=False
+    historial:list[Mensaje]=[]; activa:str=""
+    total_propietarios:int=0; total_mascotas:int=0
+    total_vacunas:int=0; total_consultas:int=0
+    ingresos_total:float=0.0; stats_ok:bool=False
 
     async def cargar_stats(self):
         try:
@@ -53,419 +50,234 @@ class State(rx.State):
                 r = await c.get(f"{BACKEND_URL}/stats")
                 if r.status_code == 200:
                     d = r.json()
-                    self.total_propietarios = d.get("propietarios", 0)
-                    self.total_mascotas     = d.get("mascotas", 0)
-                    self.total_vacunas      = d.get("vacunas", 0)
-                    self.total_consultas    = d.get("consultas", 0)
-                    self.ingresos_total     = d.get("ingresos_total", 0.0)
-                    self.stats_ok = True
+                    self.total_propietarios=d.get("propietarios",0)
+                    self.total_mascotas=d.get("mascotas",0)
+                    self.total_vacunas=d.get("vacunas",0)
+                    self.total_consultas=d.get("consultas",0)
+                    self.ingresos_total=d.get("ingresos_total",0.0)
+                    self.stats_ok=True
         except Exception: pass
 
-    def set_pregunta(self, v: str): self.pregunta = v
-    def set_sugerida(self, p: str): self.pregunta = p; self.activa = p
-    def handle_enter(self, k: str):
-        if k == "Enter": return State.enviar()
-
-    def limpiar(self):
-        self.historial = []
-        self.pregunta = ""
-        self.activa = ""
+    def set_pregunta(self,v): self.pregunta=v
+    def set_sugerida(self,p): self.pregunta=p; self.activa=p
+    def handle_enter(self,k):
+        if k=="Enter": return State.enviar()
+    def limpiar(self): self.historial=[]; self.pregunta=""; self.activa=""
 
     async def enviar(self):
         if not self.pregunta.strip(): return
-        texto = self.pregunta
-        self.pregunta_mostrada = texto
-        self.pregunta = ""
-        self.activa = ""
-        self.cargando = True
-        yield rx.call_script("setTimeout(() => { var e = document.getElementById('chat-container'); if(e) e.scrollTop = e.scrollHeight; }, 100)")
+        texto=self.pregunta; self.pregunta_mostrada=texto
+        self.pregunta=""; self.activa=""; self.cargando=True
+        yield rx.call_script("setTimeout(()=>{var e=document.getElementById('chat');if(e)e.scrollTop=e.scrollHeight;},80)")
         try:
             async with httpx.AsyncClient(timeout=60) as c:
-                r = await c.post(f"{BACKEND_URL}/consulta",
-                                 json={"pregunta": texto})
-                d = r.json()
-                msg = {
-                    "pregunta": texto,
-                    "respuesta_ia": d.get("respuesta_ia", ""),
-                    "sql_ejecutado": d.get("sql_ejecutado", ""),
-                    "datos_db": d.get("datos_db", []),
-                    "error": d.get("error") or "",
-                }
+                r=await c.post(f"{BACKEND_URL}/consulta",json={"pregunta":texto})
+                d=r.json()
+                msg={"pregunta":texto,"respuesta_ia":d.get("respuesta_ia",""),
+                     "sql_ejecutado":d.get("sql_ejecutado",""),
+                     "datos_db":d.get("datos_db",[]),"error":d.get("error") or ""}
         except httpx.ConnectError:
-            msg = {"pregunta": texto, "respuesta_ia": "",
-                   "sql_ejecutado": "", "datos_db": [],
-                   "error": "Sin conexión con el backend"}
+            msg={"pregunta":texto,"respuesta_ia":"","sql_ejecutado":"","datos_db":[],"error":"Sin conexion con el backend"}
         except Exception as e:
-            msg = {"pregunta": texto, "respuesta_ia": "",
-                   "sql_ejecutado": "", "datos_db": [],
-                   "error": str(e)}
-        self.historial.append(msg)
-        self.cargando = False
-        self.pregunta_mostrada = ""
-        # Scroll to top of the new AI response
-        yield rx.call_script("setTimeout(() => { var els = document.getElementsByClassName('ai-response'); if(els.length > 0) { els[els.length - 1].scrollIntoView({behavior: 'smooth', block: 'start'}); } }, 150)")
+            msg={"pregunta":texto,"respuesta_ia":"","sql_ejecutado":"","datos_db":[],"error":str(e)}
+        self.historial.append(msg); self.cargando=False; self.pregunta_mostrada=""
+        yield rx.call_script("setTimeout(()=>{var el=document.querySelector('.ai-block:last-of-type');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},120)")
 
 
-CHIPS = [
-    "Cuantas mascotas hay",
-    "Lista de propietarios",
-    "Mascotas y sus duenos",
-    "Vacunas aplicadas",
-    "Consultas completadas",
-    "Mascotas por especie",
-]
-
-
-# ── Helpers ────────────────────────────────────────────────────────────
-
-def stat(label: str, val: Any, color: str) -> rx.Component:
-    return rx.hstack(
-        rx.text(label, color=MUTED, font_size="0.7rem",
-                font_family=MONO, flex="1"),
-        rx.cond(State.stats_ok,
-                rx.text(val, color=color, font_size="0.78rem",
-                        font_weight="700", font_family=MONO),
-                rx.text("—", color=DIM, font_family=MONO)),
-        width="100%", align="center", padding_y="0.28rem",
-        border_bottom=f"1px solid {BORDER}",
-    )
-
-
-def chip(t: str) -> rx.Component:
-    return rx.button(
-        t, on_click=State.set_sugerida(t),
-        font_size="0.69rem", font_family=SANS,
-        padding="0.3rem 0.7rem", border_radius="6px",
-        background=rx.cond(State.activa == t, ACCENT2, "transparent"),
-        color=rx.cond(State.activa == t, "#fff", MUTED),
-        border=rx.cond(State.activa == t,
-                       f"1px solid {ACCENT}", f"1px solid {BORDER}"),
-        cursor="pointer", transition="all 0.15s",
-        width="100%", text_align="left",
-        _hover={"background": DIM, "color": TEXT,
-                "border_color": ACCENT},
-    )
-
-
-def sidebar() -> rx.Component:
+# Componentes sidebar
+def _stat(ic,lb,val,col):
     return rx.box(
-        # Logo
-        rx.vstack(
-            rx.text("VetAI", font_size="1.2rem", font_weight="800",
-                    color=TEXT, font_family=MONO,
-                    background=GRAD, background_clip="text",
-                    webkit_background_clip="text",
-                    color_="transparent"),
-            rx.text("sistema veterinario", font_size="0.58rem",
-                    color=MUTED, font_family=MONO),
-            spacing="0", align_items="flex-start",
-            margin_bottom="1.2rem",
+        rx.icon(ic,size=13,color=col,**_abs_l("0.75rem")),
+        rx.text(lb,color=SUB,font_size="0.72rem",font_family=SANS,**_abs_l("2rem"),white_space="nowrap"),
+        rx.cond(State.stats_ok,
+            rx.text(val(),color=col,font_size="0.75rem",font_weight="700",font_family=MONO,**_abs_r),
+            rx.box(width="22px",height="7px",background=BORDER,border_radius="3px",**_abs_r),
         ),
+        **_row, border_bottom=f"1px solid {BORDER}",
+    )
 
-        rx.box(height="1px", background=BORDER, margin_bottom="1.1rem"),
+def _modulo(ic,lb):
+    actv=State.activa==lb
+    return rx.box(
+        rx.icon(ic,size=14,color=rx.cond(actv,ACCENT,DIM),**_abs_l("0.7rem")),
+        rx.text(lb,font_size="0.72rem",font_family=SANS,
+                color=rx.cond(actv,TEXT,SUB),**_abs_l("2.1rem"),white_space="nowrap"),
+        on_click=State.set_sugerida(lb),**_row,
+        background=rx.cond(actv,f"{ACCENT}15","transparent"),
+        border_radius="8px",
+        border_left=rx.cond(actv,f"2px solid {ACCENT}","2px solid transparent"),
+        cursor="pointer",transition="all 0.12s",
+        _hover={"background":f"{ACCENT}10","border_left_color":ACLT},
+    )
 
-        # Stats
-        rx.text("RESUMEN", font_size="0.52rem", color=MUTED,
-                letter_spacing="0.14em", font_family=MONO,
-                font_weight="700", margin_bottom="0.4rem"),
-        rx.box(
-            stat("propietarios", State.total_propietarios, ACCENT),
-            stat("mascotas",     State.total_mascotas,     GREEN),
-            stat("vacunas",      State.total_vacunas,      AMBER),
-            stat("consultas",    State.total_consultas,    BLUE),
-            rx.hstack(
-                rx.text("ingresos", color=MUTED, font_size="0.7rem",
-                        font_family=MONO, flex="1"),
-                rx.cond(State.stats_ok,
-                        rx.text("$" + State.ingresos_total.to_string(),
-                                color=PINK, font_size="0.78rem",
-                                font_weight="700", font_family=MONO),
-                        rx.text("—", color=DIM, font_family=MONO)),
-                width="100%", align="center", padding_y="0.28rem",
-            ),
-            background=CARD, border=f"1px solid {BORDER}",
-            border_radius="10px", padding="0.5rem 0.8rem",
-            margin_bottom="1.1rem",
+def sidebar():
+    return rx.box(
+        rx.hstack(
+            rx.box(rx.text("V",color="#fff",font_size="0.82rem",font_weight="800"),
+                   background=BTN,border_radius="8px",width="28px",height="28px",min_width="28px",
+                   display="flex",align_items="center",justify_content="center"),
+            rx.vstack(rx.text("VetAI",font_size="0.92rem",font_weight="800",color=TEXT,letter_spacing="-0.02em"),
+                      rx.text("sistema veterinario",font_size="0.52rem",color=DIM,font_family=MONO),
+                      spacing="0",align_items="flex-start"),
+            spacing="2",align="center",margin_bottom="1.4rem",
         ),
-
-        # Chips
-        rx.text("EJEMPLOS", font_size="0.52rem", color=MUTED,
-                letter_spacing="0.14em", font_family=MONO,
-                font_weight="700", margin_bottom="0.4rem"),
-        rx.vstack(*[chip(s) for s in CHIPS], spacing="1",
-                  align_items="stretch", width="100%"),
-
+        rx.text("RESUMEN",font_size="0.48rem",color=DIM,letter_spacing="0.18em",font_family=MONO,font_weight="700",margin_bottom="0.35rem"),
+        rx.box(*[_stat(ic,lb,val,col) for ic,lb,val,col in STATS],
+               **_card, padding_y="0.15rem", padding_x="0", overflow="hidden", margin_bottom="1.3rem"),
+        rx.text("MÓDULOS",font_size="0.48rem",color=DIM,letter_spacing="0.18em",font_family=MONO,font_weight="700",margin_bottom="0.4rem"),
+        rx.vstack(*[_modulo(ic,lb) for ic,lb in MODULOS],spacing="1",align_items="stretch",width="100%"),
         rx.spacer(),
-        rx.box(height="1px", background=BORDER, margin_bottom="0.8rem"),
-        rx.text("FastAPI · Reflex · DeepSeek",
-                font_size="0.52rem", color=DIM, font_family=MONO),
-
-        width="205px", min_width="205px", height="100vh",
-        background=SURF, border_right=f"1px solid {BORDER}",
-        padding="1.4rem 1rem",
-        display="flex", flex_direction="column", overflow_y="auto",
-        css={"&::-webkit-scrollbar": {"width": "3px"},
-             "&::-webkit-scrollbar-thumb": {"background": BORDER}},
+        rx.box(height="1px",background=BORDER,margin_bottom="0.65rem"),
+        rx.text("FastAPI · Reflex · DeepSeek",font_size="0.48rem",color=DIM,font_family=MONO),
+        width="215px",min_width="215px",height="100vh",background=SURF,
+        border_right=f"1px solid {BORDER}",padding="1.3rem 0.85rem",
+        display="flex",flex_direction="column",overflow="hidden",
     )
 
 
-def bubble_ia(msg: dict) -> rx.Component:
-    return rx.vstack(
-        rx.box(
-            rx.hstack(
-                rx.icon("sparkles", size=12, color=ACCENT),
-                rx.text("VetAI", font_size="0.68rem", font_family=MONO,
-                        font_weight="700", color=ACCENT),
-                align="center", spacing="1", margin_bottom="0.45rem",
-            ),
-            rx.cond(
-                msg["error"] != "",
-                rx.text(msg["error"], font_size="0.8rem", color=RED,
-                        font_family=MONO, white_space="pre-wrap"),
-                rx.markdown(msg["respuesta_ia"], font_size="0.87rem"),
-            ),
-            background=CARD, border=f"1px solid {BORDER}",
-            border_left=f"3px solid {ACCENT}",
-            border_radius="4px 14px 14px 14px",
-            padding="0.9rem 1.2rem", max_width="85%",
-            box_shadow="0 2px 16px rgba(6,182,212,0.07)",
-            class_name="ai-response",
-        ),
-        rx.cond(
-            msg["sql_ejecutado"] != "",
+# Componentes chat
+def _avatar():
+    return rx.box(rx.icon("paw-print",size=13,color=ACCENT),
+                  width="30px",height="30px",min_width="30px",
+                  background=CARD2,border=f"1px solid {BORDER}",border_radius="50%",
+                  display="flex",align_items="center",justify_content="center",margin_top="1px")
+
+def _caja(**kw): return {**_card,"border_left":f"3px solid {ACCENT}","border_radius":"2px 12px 12px 12px","padding":"0.8rem 1rem","width":"100%",**kw}
+
+def bubble_ia(msg):
+    return rx.hstack(
+        _avatar(),
+        rx.vstack(
+            rx.text("VetAI",font_size="0.7rem",font_weight="600",color=SUB,margin_bottom="0.25rem"),
             rx.box(
-                rx.text("SQL ejecutado", font_size="0.55rem", color=MUTED,
-                        font_family=MONO, letter_spacing="0.1em",
-                        margin_bottom="0.25rem"),
-                rx.code_block(msg["sql_ejecutado"], language="sql",
-                              font_size="0.73rem", border_radius="8px",
-                              border=f"1px solid {BORDER}"),
-                width="100%",
-            ),
-            rx.box(),
-        ),
-        rx.cond(
-            msg["datos_db"].length() > 0,
-            rx.box(
-                rx.text("Datos", font_size="0.55rem", color=MUTED,
-                        font_family=MONO, letter_spacing="0.1em",
-                        margin_bottom="0.25rem"),
-                rx.box(
-                    rx.table.root(
-                        rx.table.header(
-                            rx.table.row(
-                                rx.foreach(
-                                    msg["datos_db"][0],
-                                    lambda kv: rx.table.column_header_cell(
-                                        kv[0], font_size="0.58rem",
-                                        text_transform="uppercase",
-                                        color=ACCENT, font_family=MONO,
-                                        padding="0.5rem 0.9rem",
-                                        border_bottom=f"1px solid {BORDER}",
-                                        white_space="nowrap",
-                                    ),
-                                ),
-                            ),
-                            background=SURF,
-                        ),
-                        rx.table.body(
-                            rx.foreach(
-                                msg["datos_db"],
-                                lambda row: rx.table.row(
-                                    rx.foreach(
-                                        row,
-                                        lambda kv: rx.table.cell(
-                                            rx.text(kv[1], font_size="0.76rem",
-                                                    color=TEXT, font_family=SANS),
-                                            padding="0.45rem 0.9rem",
-                                            border_bottom=f"1px solid {BORDER}",
-                                            white_space="nowrap",
-                                        ),
-                                    ),
-                                    _hover={"background": DIM,
-                                            "transition": "all 0.1s"},
-                                ),
-                            ),
-                        ),
-                        width="100%",
-                    ),
-                    overflow_x="auto", border=f"1px solid {BORDER}",
-                    border_radius="8px", background=CARD,
+                rx.cond(msg["error"]!="",
+                    rx.hstack(rx.icon("circle-x",size=13,color=ERR),
+                              rx.text(msg["error"],font_size="0.8rem",color=ERR,font_family=MONO),
+                              spacing="2",align="center"),
+                    rx.markdown(msg["respuesta_ia"],font_size="0.84rem",line_height="1.65"),
                 ),
-                width="100%",
+                **_caja(class_name="ai-block"),
             ),
-            rx.box(),
+            rx.cond(msg["sql_ejecutado"]!="",
+                rx.box(
+                    rx.hstack(rx.icon("code-2",size=11,color=DIM),
+                              rx.text("SQL ejecutado",font_size="0.5rem",color=DIM,font_family=MONO,letter_spacing="0.1em"),
+                              spacing="1",align="center",margin_bottom="0.28rem"),
+                    rx.code_block(msg["sql_ejecutado"],language="sql",font_size="0.71rem",border_radius="6px",border=f"1px solid {BORDER}"),
+                    **_card,padding="0.7rem 1rem",width="100%",
+                ),rx.box()),
+            rx.cond(msg["datos_db"].length()>0,
+                rx.box(
+                    rx.hstack(rx.icon("table-2",size=11,color=DIM),
+                              rx.text("Resultado",font_size="0.5rem",color=DIM,font_family=MONO,letter_spacing="0.1em"),
+                              spacing="1",align="center",margin_bottom="0.28rem"),
+                    rx.box(
+                        rx.table.root(
+                            rx.table.header(rx.table.row(rx.foreach(msg["datos_db"][0],
+                                lambda kv: rx.table.column_header_cell(kv[0],font_size="0.56rem",text_transform="uppercase",
+                                    color=ACCENT,font_family=MONO,padding="0.4rem 0.9rem",
+                                    border_bottom=f"1px solid {BORDER}",white_space="nowrap")),),background=CARD2),
+                            rx.table.body(rx.foreach(msg["datos_db"],
+                                lambda row: rx.table.row(rx.foreach(row,
+                                    lambda kv: rx.table.cell(rx.text(kv[1],font_size="0.75rem",color=TEXT,font_family=SANS),
+                                        padding="0.38rem 0.9rem",border_bottom=f"1px solid {BORDER}",white_space="nowrap")),
+                                    _hover={"background":CARD2}))),
+                            width="100%"),
+                        overflow_x="auto",border=f"1px solid {BORDER}",border_radius="6px",background=CARD),
+                    **_card,padding="0.7rem 1rem",width="100%",
+                ),rx.box()),
+            align_items="flex-start",spacing="2",flex="1",
         ),
-        align_items="flex-start", spacing="2", width="100%",
+        align_items="flex-start",spacing="3",width="100%",
     )
 
+def _burbuja_user(txt):
+    return rx.box(rx.text(txt,font_size="0.84rem",color="#fff",line_height="1.55"),
+                  background=USER_BG,border=f"1px solid {BORDER}",
+                  border_radius="12px 12px 2px 12px",padding="0.65rem 1rem",max_width="65%")
 
-def mensaje(msg: dict) -> rx.Component:
+def mensaje(msg):
     return rx.vstack(
-        # Burbuja usuario
-        rx.box(
-            rx.box(
-                rx.text(msg["pregunta"], font_size="0.87rem",
-                        color="#fff", line_height="1.5"),
-                background=GRAD_USER,
-                padding="0.65rem 1.05rem",
-                border_radius="18px 18px 4px 18px",
-                max_width="68%",
-                box_shadow="0 2px 12px rgba(59,130,246,.15)",
-            ),
-            width="100%", display="flex", justify_content="flex-end",
-        ),
-        # Respuesta IA
+        rx.box(_burbuja_user(msg["pregunta"]),width="100%",display="flex",justify_content="flex-end"),
         bubble_ia(msg),
-        align_items="flex-start", spacing="2",
-        width="100%", margin_bottom="1.2rem",
+        align_items="flex-start",spacing="3",width="100%",margin_bottom="1.5rem",
     )
 
-
-def chat_panel() -> rx.Component:
+def chat_panel():
     return rx.box(
         # Header
         rx.hstack(
-            rx.vstack(
-                rx.text("Consultor Veterinario", font_size="0.95rem",
-                        font_weight="700", color=TEXT),
-                rx.text("lenguaje natural → sql → ia",
-                        font_size="0.6rem", color=MUTED, font_family=MONO),
-                spacing="0", align_items="flex-start",
-            ),
+            rx.vstack(rx.text("Consultor Veterinario",font_size="0.9rem",font_weight="700",color=TEXT,letter_spacing="-0.01em"),
+                      rx.text("Lenguaje natural + SQL + IA",font_size="0.58rem",color=DIM,font_family=MONO),
+                      spacing="0",align_items="flex-start"),
             rx.spacer(),
             rx.button(
-                "Nueva sesión", on_click=State.limpiar,
-                background="transparent", color=MUTED,
-                border=f"1px solid {BORDER}", border_radius="8px",
-                font_size="0.68rem", font_family=SANS,
-                padding="0.28rem 0.85rem", cursor="pointer",
-                _hover={"color": TEXT, "border_color": ACCENT},
-                transition="all 0.15s",
+                rx.hstack(rx.icon("plus",size=13,color=SUB),rx.text("Nueva sesion",font_size="0.7rem",color=SUB),spacing="1",align="center"),
+                on_click=State.limpiar,background="transparent",border=f"1px solid {BORDER}",
+                border_radius="8px",padding="0.3rem 0.85rem",cursor="pointer",
+                transition="all 0.12s",_hover={"border_color":ACCENT,"color":TEXT},
             ),
-            align="center", width="100%",
-            padding="0.9rem 1.6rem",
-            border_bottom=f"1px solid {BORDER}", background=SURF,
+            align="center",width="100%",padding="0.88rem 1.5rem",
+            border_bottom=f"1px solid {BORDER}",background=SURF,
         ),
-
         # Historial
         rx.box(
-            rx.cond(
-                State.historial.length() == 0,
-                rx.box(
-                    rx.vstack(
-                        rx.icon("stethoscope", size=36,
-                                color=MUTED, opacity="0.3"),
-                        rx.text("¿En qué puedo ayudarte?",
-                                font_size="0.9rem", color=MUTED,
-                                font_weight="600"),
-                        rx.text("Selecciona un ejemplo o escribe tu consulta",
-                                font_size="0.72rem", color=DIM),
-                        spacing="2", align="center",
-                    ),
-                    position="absolute", top="50%", left="50%",
-                    transform="translate(-50%, -50%)",
-                    text_align="center",
-                ),
-                rx.box(),
-            ),
-
-            rx.foreach(State.historial, mensaje),
-
-            # Pregunta actual (cargando)
-            rx.cond(
-                State.pregunta_mostrada != "",
-                rx.box(
-                    rx.box(
-                        rx.text(State.pregunta_mostrada, font_size="0.87rem",
-                                color="#fff", line_height="1.5"),
-                        background=GRAD_USER,
-                        padding="0.65rem 1.05rem",
-                        border_radius="18px 18px 4px 18px",
-                        max_width="68%",
-                        box_shadow="0 2px 12px rgba(59,130,246,.15)",
-                    ),
-                    width="100%", display="flex", justify_content="flex-end",
-                    margin_bottom="1.2rem",
-                ),
-                rx.box(),
-            ),
-
-            rx.cond(
-                State.cargando,
-                rx.hstack(
-                    rx.spinner(color=ACCENT, size="2"),
-                    rx.text("Procesando...", font_size="0.76rem",
-                            color=MUTED, font_family=MONO),
-                    spacing="2", padding_y="0.5rem",
-                ),
-                rx.box(),
-            ),
-
-            padding="1.4rem 1.6rem",
-            flex="1", overflow_y="auto", position="relative",
-            id="chat-container",
-            css={"&::-webkit-scrollbar": {"width": "4px"},
-                 "&::-webkit-scrollbar-thumb": {
-                     "background": BORDER, "border-radius": "4px"}},
+            rx.cond(State.historial.length()==0,
+                rx.box(rx.vstack(rx.icon("stethoscope",size=36,color=DIM,opacity="0.35"),
+                                 rx.text("En que puedo ayudarte?",font_size="0.88rem",color=SUB,font_weight="600"),
+                                 rx.text("Selecciona un modulo o escribe tu consulta",font_size="0.66rem",color=DIM),
+                                 spacing="2",align="center"),
+                       position="absolute",top="50%",left="50%",transform="translate(-50%,-50%)",text_align="center"),
+                rx.box()),
+            rx.foreach(State.historial,mensaje),
+            rx.cond(State.pregunta_mostrada!="",
+                rx.box(_burbuja_user(State.pregunta_mostrada),width="100%",display="flex",justify_content="flex-end",margin_bottom="1.5rem"),
+                rx.box()),
+            rx.cond(State.cargando,
+                rx.hstack(_avatar(),
+                    rx.hstack(rx.spinner(color=ACCENT,size="2"),
+                              rx.text("Procesando consulta...",font_size="0.73rem",color=SUB,font_family=MONO),
+                              spacing="2",align="center",**_caja()),
+                    spacing="3",align="start"),
+                rx.box()),
+            padding="1.4rem 1.5rem",flex="1",overflow_y="auto",position="relative",id="chat",
+            css={"&::-webkit-scrollbar":{"width":"3px"},"&::-webkit-scrollbar-thumb":{"background":BORDER,"border-radius":"3px"}},
         ),
-
         # Input
         rx.box(
             rx.hstack(
-                rx.input(
-                    placeholder="Escribe tu pregunta aquí...",
-                    value=State.pregunta,
-                    on_change=State.set_pregunta,
-                    on_key_down=State.handle_enter,
-                    font_size="0.86rem", font_family=SANS,
-                    background=CARD, color=TEXT,
-                    border=f"1px solid {BORDER}", border_radius="10px",
-                    padding="0.75rem 1.1rem", height="46px", flex="1",
-                    _placeholder={"color": MUTED},
-                    _focus={"border_color": ACCENT,
-                            "box_shadow": "0 0 0 3px rgba(129,140,248,.12)",
-                            "outline": "none"},
-                    transition="all 0.2s",
-                ),
+                rx.icon("paperclip",size=15,color=DIM,cursor="pointer"),
+                rx.input(placeholder="Escribe tu pregunta aqui...",value=State.pregunta,
+                         on_change=State.set_pregunta,on_key_down=State.handle_enter,
+                         font_size="0.84rem",font_family=SANS,background="transparent",color=TEXT,
+                         border="none",flex="1",_placeholder={"color":DIM},
+                         _focus={"outline":"none","border":"none","box_shadow":"none"}),
                 rx.button(
-                    rx.cond(State.cargando, "···", "Enviar"),
-                    on_click=State.enviar, disabled=State.cargando,
-                    background=GRAD, color="#fff",
-                    font_family=SANS, font_size="0.82rem",
-                    font_weight="600", border="none",
-                    border_radius="10px", padding="0 1.4rem",
-                    height="46px", cursor="pointer",
-                    _hover={"opacity": "0.88"},
-                    _disabled={"opacity": "0.35", "cursor": "not-allowed"},
-                    transition="all 0.15s",
+                    rx.cond(State.cargando,rx.spinner(color="#fff",size="2"),rx.icon("send-horizontal",size=15,color="#fff")),
+                    on_click=State.enviar,disabled=State.cargando,background=BTN,border="none",
+                    border_radius="8px",width="34px",height="34px",cursor="pointer",flex_shrink="0",
+                    _hover={"background":ACLT},_disabled={"opacity":"0.35","cursor":"not-allowed"},transition="background 0.12s",
                 ),
-                spacing="2",
+                spacing="3",align="center",background=CARD,border=f"1px solid {BORDER}",
+                border_radius="12px",padding="0.48rem 0.65rem 0.48rem 1rem",
             ),
-            padding="0.9rem 1.6rem 1.2rem",
-            border_top=f"1px solid {BORDER}", background=SURF,
+            padding="0.85rem 1.5rem 1.1rem",border_top=f"1px solid {BORDER}",background=SURF,
         ),
-
-        flex="1", display="flex", flex_direction="column",
-        height="100vh", background=BG, overflow="hidden",
+        flex="1",display="flex",flex_direction="column",height="100vh",background=GRAD,overflow="hidden",
     )
 
 
-def index() -> rx.Component:
-    return rx.box(
-        sidebar(), chat_panel(),
-        display="flex", width="100vw", height="100vh",
-        font_family=SANS, background=BG, color=TEXT,
-        overflow="hidden", on_mount=State.cargar_stats,
-    )
-
+def index():
+    return rx.box(sidebar(),chat_panel(),
+                  display="flex",width="100vw",height="100vh",
+                  font_family=SANS,background=BG,color=TEXT,
+                  overflow="hidden",on_mount=State.cargar_stats)
 
 app = rx.App(
     stylesheets=[
         "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
         "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
     ],
-    style={"margin": "0", "padding": "0", "box_sizing": "border-box",
-           "body": {"margin": "0", "padding": "0", "overflow": "hidden"}},
+    style={"margin":"0","padding":"0","box_sizing":"border-box","body":{"margin":"0","padding":"0","overflow":"hidden"}},
 )
-app.add_page(index, route="/", title="VetAI")
+app.add_page(index,route="/",title="VetAI")

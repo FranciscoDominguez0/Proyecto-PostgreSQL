@@ -1,28 +1,19 @@
 # main.py — Entry point del backend FastAPI (Sistema Veterinario)
 
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import traceback
 
 from models import ConsultaRequest, ConsultaResponse
 from database import ejecutar_query, get_db_connection
-from ai import generar_sql, generar_respuesta_natural
+from ai import generar_sql, generar_respuesta_natural, validar_pregunta
 
-load_dotenv(encoding="latin-1")
+load_dotenv()
 
 app = FastAPI(
     title="VetAI API",
-    description="Backend para consultas inteligentes de Sistema Veterinario con DeepSeek + PostgreSQL",
+    description="Backend para consultas inteligentes con DeepSeek + PostgreSQL",
     version="1.0.0",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
 )
 
 
@@ -33,7 +24,7 @@ def root():
 
 @app.get("/health")
 def health():
-    """Verifica la conexion a la base de datos."""
+    """Verifica la conexión a la base de datos."""
     try:
         conn = get_db_connection()
         conn.close()
@@ -45,7 +36,7 @@ def health():
 @app.post("/consulta", response_model=ConsultaResponse)
 def consulta(request: ConsultaRequest):
     """
-    Recibe una pregunta en lenguaje natural,
+    Recibe una pregunta en lenguaje natural, valida que sea del dominio veterinario,
     genera SQL con DeepSeek, ejecuta en PostgreSQL y devuelve la respuesta.
     """
     pregunta = request.pregunta.strip()
@@ -53,9 +44,18 @@ def consulta(request: ConsultaRequest):
         raise HTTPException(status_code=400, detail="La pregunta no puede estar vacia.")
 
     try:
+        # Validar que la pregunta sea relevante al sistema veterinario
+        if not validar_pregunta(pregunta):
+            return ConsultaResponse(
+                pregunta=pregunta,
+                sql_ejecutado="",
+                datos_db=[],
+                respuesta_ia="Solo puedo responder preguntas relacionadas con el sistema veterinario: mascotas, propietarios, vacunas y consultas.",
+            )
+
         sql      = generar_sql(pregunta)
         datos    = ejecutar_query(sql)
-        respuesta = generar_respuesta_natural(pregunta, datos, sql)
+        respuesta = generar_respuesta_natural(pregunta, datos)
 
         return ConsultaResponse(
             pregunta=pregunta,
@@ -79,7 +79,7 @@ def consulta(request: ConsultaRequest):
 
 @app.get("/stats")
 def stats():
-    """Estadisticas rapidas del sistema veterinario."""
+    """Estadísticas rápidas del sistema veterinario."""
     try:
         propietarios = ejecutar_query("SELECT COUNT(*) as total FROM propietarios")
         mascotas     = ejecutar_query("SELECT COUNT(*) as total FROM mascotas")
