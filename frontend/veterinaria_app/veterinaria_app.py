@@ -3,7 +3,7 @@ import httpx
 from typing import TypedDict
 import os
 
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8001")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Paleta
 BG="#121417"; SURF="#171A1E"; CARD="#20242A"; CARD2="#1A1D21"; BORDER="#2C3138"
