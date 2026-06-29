@@ -57,6 +57,6 @@ volumes:
 networks:
   vetai-network:
     driver: bridge
-    name: vetai-network
+    name: vetai_network
   red-proxy:
     external: true
