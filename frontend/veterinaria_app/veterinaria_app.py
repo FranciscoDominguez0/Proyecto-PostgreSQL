@@ -20,7 +20,7 @@ _abs_r = {"position":"absolute","right":"0.75rem","top":"50%","transform":"trans
 
 MODULOS = [
     ("paw-print","Cuantas mascotas hay"), ("user","Lista de propietarios"),
-    ("link-2","Mascotas y sus duenos"),   ("syringe","Vacunas aplicadas"),
+    ("link-2","Mascotas y sus dueños"),   ("syringe","Vacunas aplicadas"),
     ("clipboard-list","Consultas completadas"), ("bar-chart-2","Mascotas por especie"),
 ]
 STATS = [
