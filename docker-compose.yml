@@ -1,8 +1,6 @@
 name: veterinaria
 
 services:
-  # 1. Base de datos PostgreSQL - Sistema Veterinario
-
   db:
     image: postgres:15-alpine
     container_name: vetai_db
@@ -13,9 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - vetai_network
-
-  # 2. Backend (FastAPI API) - VetAI
+      - vetai-network
 
   backend:
     build:
@@ -24,16 +20,12 @@ services:
     container_name: vetai_backend
     restart: always
     env_file: backend/.env
-    ports:
-      - "9090:8000"
     expose:
       - "8000"
     depends_on:
       - db
     networks:
-      - vetai_network
-
-  # 3. Frontend (Reflex App) - VetAI
+      - vetai-network
 
   frontend:
     build:
@@ -42,14 +34,13 @@ services:
     container_name: vetai_frontend
     restart: always
     env_file: backend/.env
-    ports:
-      - "9092:3000"
     expose:
       - "3000"
     depends_on:
       - backend
     networks:
-      - vetai_network
+      - vetai-network
+      - red-proxy
 
 volumes:
   postgres_data:
@@ -57,6 +48,6 @@ volumes:
 networks:
   vetai-network:
     driver: bridge
-    name: vetai_network
+    name: vetai-network
   red-proxy:
     external: true
