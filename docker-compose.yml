@@ -55,8 +55,8 @@ volumes:
   postgres_data:
 
 networks:
-  vetai_network:
+  vetai-network:
     driver: bridge
-  default:
+    name: vetai-network
+  red-proxy:
     external: true
-    name: red-proxy
